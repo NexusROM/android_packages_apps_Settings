@@ -18,7 +18,6 @@ package com.android.settings.inputmethod;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -35,7 +34,6 @@ import android.hardware.input.InputManager;
 import android.hardware.input.KeyboardLayout;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.UserHandle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -106,7 +104,6 @@ public class InputMethodAndLanguageSettings extends SettingsPreferenceFragment
     private SettingsObserver mSettingsObserver;
     private Intent mIntentWaitingForResult;
     private InputMethodSettingValuesWrapper mInputMethodSettingValues;
-    private DevicePolicyManager mDpm;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -189,8 +186,6 @@ public class InputMethodAndLanguageSettings extends SettingsPreferenceFragment
 
         mHandler = new Handler();
         mSettingsObserver = new SettingsObserver(mHandler, activity);
-        mDpm = (DevicePolicyManager) (getActivity().
-                getSystemService(Context.DEVICE_POLICY_SERVICE));
 
         // If we've launched from the keyboard layout notification, go ahead and just show the
         // keyboard layout dialog.
@@ -395,7 +390,6 @@ public class InputMethodAndLanguageSettings extends SettingsPreferenceFragment
                 mKeyboardSettingsCategory.removePreference(pref);
             }
             mInputMethodPreferenceList.clear();
-            List<String> permittedList = mDpm.getPermittedInputMethodsForCurrentUser();
             final Context context = getActivity();
             final List<InputMethodInfo> imis = mShowsOnlyFullImeAndKeyboardList
                     ? mInputMethodSettingValues.getInputMethodList()
@@ -403,11 +397,8 @@ public class InputMethodAndLanguageSettings extends SettingsPreferenceFragment
             final int N = (imis == null ? 0 : imis.size());
             for (int i = 0; i < N; ++i) {
                 final InputMethodInfo imi = imis.get(i);
-                final boolean isAllowedByOrganization = permittedList == null
-                        || permittedList.contains(imi.getPackageName());
                 final InputMethodPreference pref = new InputMethodPreference(
-                        context, imi, mShowsOnlyFullImeAndKeyboardList /* hasSwitch */,
-                        isAllowedByOrganization, this);
+                         context, imi, mShowsOnlyFullImeAndKeyboardList /* hasSwitch */, this);
                 mInputMethodPreferenceList.add(pref);
             }
             final Collator collator = Collator.getInstance();

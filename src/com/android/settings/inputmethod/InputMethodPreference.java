@@ -68,7 +68,6 @@ class InputMethodPreference extends SwitchPreference implements OnPreferenceClic
     private final boolean mHasPriorityInSorting;
     private final OnSavePreferenceListener mOnSaveListener;
     private final InputMethodSettingValuesWrapper mInputMethodSettingValues;
-    private final boolean mIsAllowedByOrganization;
 
     private AlertDialog mDialog = null;
 
@@ -79,18 +78,14 @@ class InputMethodPreference extends SwitchPreference implements OnPreferenceClic
      * @param imi The {@link InputMethodInfo} of this preference.
      * @param isImeEnabler true if this preference is the IME enabler that has enable/disable
      *     switches for all available IMEs, not the list of enabled IMEs.
-     * @param isAllowedByOrganization false if the IME has been disabled by a device or profile
-           owner.
      * @param onSaveListener The listener called when this preference has been changed and needs
      *     to save the state to shared preference.
      */
     InputMethodPreference(final Context context, final InputMethodInfo imi,
-            final boolean isImeEnabler, final boolean isAllowedByOrganization,
-            final OnSavePreferenceListener onSaveListener) {
+            final boolean isImeEnabler, final OnSavePreferenceListener onSaveListener) {
         super(context);
         setPersistent(false);
         mImi = imi;
-        mIsAllowedByOrganization = isAllowedByOrganization;
         mOnSaveListener = onSaveListener;
         if (!isImeEnabler) {
             // Hide switch widget.
@@ -183,8 +178,9 @@ class InputMethodPreference extends SwitchPreference implements OnPreferenceClic
                 mImi, getContext());
         // Only when this preference has a switch and an input method should be always enabled,
         // this preference should be disabled to prevent accidentally disabling an input method.
-        setEnabled(!((isAlwaysChecked && isImeEnabler()) || (!mIsAllowedByOrganization)));
-        setChecked(mInputMethodSettingValues.isEnabledImi(mImi));
+        //setEnabled(!(isAlwaysChecked && isImeEnabler()));
+        setEnabled(true);
+        setChecked(true);
         setSummary(getSummaryString());
     }
 
@@ -194,9 +190,6 @@ class InputMethodPreference extends SwitchPreference implements OnPreferenceClic
 
     private String getSummaryString() {
         final Context context = getContext();
-        if (!mIsAllowedByOrganization) {
-            return context.getString(R.string.accessibility_feature_or_input_method_not_allowed);
-        }
         final InputMethodManager imm = getInputMethodManager();
         final List<InputMethodSubtype> subtypes = imm.getEnabledInputMethodSubtypeList(mImi, true);
         final ArrayList<CharSequence> subtypeLabels = new ArrayList<>();

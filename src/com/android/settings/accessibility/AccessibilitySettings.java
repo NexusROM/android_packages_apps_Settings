@@ -18,7 +18,6 @@ package com.android.settings.accessibility;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.ActivityManagerNative;
-import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -29,7 +28,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
-import android.os.UserHandle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -183,15 +181,11 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
 
     private int mLongPressTimeoutDefault;
 
-    private DevicePolicyManager mDpm;
-
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         addPreferencesFromResource(R.xml.accessibility_settings);
         initializeAllPreferences();
-        mDpm = (DevicePolicyManager) (getActivity()
-                .getSystemService(Context.DEVICE_POLICY_SERVICE));
     }
 
     @Override
@@ -382,8 +376,7 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
                 accessibilityManager.getInstalledAccessibilityServiceList();
         Set<ComponentName> enabledServices = AccessibilityUtils.getEnabledServicesFromSettings(
                 getActivity());
-        List<String> permittedServices = mDpm.getPermittedAccessibilityServices(
-                UserHandle.myUserId());
+
         final boolean accessibilityEnabled = Settings.Secure.getInt(getContentResolver(),
                 Settings.Secure.ACCESSIBILITY_ENABLED, 0) == 1;
 
@@ -405,24 +398,10 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
                     && enabledServices.contains(componentName);
             String serviceEnabledString;
             if (serviceEnabled) {
-                serviceEnabledString = getString(R.string.accessibility_feature_state_on);
+                preference.setSummary(getString(R.string.accessibility_feature_state_on));
             } else {
-                serviceEnabledString = getString(R.string.accessibility_feature_state_off);
+                preference.setSummary(getString(R.string.accessibility_feature_state_on));
             }
-
-            // Disable all accessibility services that are not permitted.
-            String packageName = serviceInfo.packageName;
-            boolean serviceAllowed =
-                    permittedServices == null || permittedServices.contains(packageName);
-            preference.setEnabled(serviceAllowed || serviceEnabled);
-
-            String summaryString;
-            if (serviceAllowed) {
-                summaryString = serviceEnabledString;
-            } else  {
-                summaryString = getString(R.string.accessibility_feature_or_input_method_not_allowed);
-            }
-            preference.setSummary(summaryString);
 
             preference.setOrder(i);
             preference.setFragment(ToggleAccessibilityServicePreferenceFragment.class.getName());
